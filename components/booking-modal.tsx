@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useToast } from "@/components/ui/use-toast"
+import { createMeeting } from "@/app/actions/meetings" // Fixed import path
 
 interface BookingModalProps {
   open: boolean
@@ -38,26 +39,32 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
     setIsSubmitting(true)
 
     try {
-      // In a real implementation, this would send data to Supabase
-      // For now, we'll just simulate a successful submission
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const form = e.target as HTMLFormElement
+      const formData = new FormData(form)
+      formData.set("date", date?.toISOString() || "")
 
-      toast({
-        title: "Möte bokat!",
-        description: "Vi kommer att kontakta dig inom kort för att bekräfta ditt möte.",
-      })
+      const result = await createMeeting(formData)
 
-      // Reset form
-      setName("")
-      setEmail("")
-      setPhone("")
-      setCompany("")
-      setService("")
-      setDate(undefined)
-      setMessage("")
+      if (result.success) {
+        toast({
+          title: "Möte bokat!",
+          description: "Vi kommer att kontakta dig inom kort för att bekräfta ditt möte.",
+        })
 
-      // Close modal
-      onOpenChange(false)
+        // Reset form
+        setName("")
+        setEmail("")
+        setPhone("")
+        setCompany("")
+        setService("")
+        setDate(undefined)
+        setMessage("")
+
+        // Close modal
+        onOpenChange(false)
+      } else {
+        throw new Error(result.error)
+      }
     } catch (error) {
       toast({
         title: "Ett fel uppstod",
@@ -93,27 +100,34 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="name">Namn *</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+                <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">E-post *</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="phone">Telefon</Label>
-                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                <Input id="phone" name="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="company">Företag</Label>
-                <Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} />
+                <Input id="company" name="company" value={company} onChange={(e) => setCompany(e.target.value)} />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="service">Tjänst *</Label>
-                <Select required value={service} onValueChange={setService}>
+                <Select required value={service} name="service" onValueChange={setService}>
                   <SelectTrigger>
                     <SelectValue placeholder="Välj tjänst" />
                   </SelectTrigger>
@@ -150,7 +164,13 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
 
             <div className="space-y-2">
               <Label htmlFor="message">Meddelande</Label>
-              <Textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} rows={4} />
+              <Textarea
+                id="message"
+                name="message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={4}
+              />
             </div>
 
             <div className="flex justify-end mt-4">

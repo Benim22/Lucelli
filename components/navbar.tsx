@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react"
 import BookingModal from "@/components/booking-modal"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils"
+import { UserMenu } from "@/components/user-menu"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -82,6 +83,7 @@ export default function Navbar() {
             >
               Boka Möte
             </Button>
+            <UserMenu />
           </div>
 
           {/* Mobile Navigation Toggle */}

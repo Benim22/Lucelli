@@ -49,12 +49,12 @@ export default function Hero() {
                 Våra Tjänster
               </Button>
             </Link>
-            <Link href="/kontakt">
+            <Link href="/auth/signin">
               <Button
                 size="lg"
                 className="text-lg bg-transparent hover:bg-white/20 text-white border-2 border-white/50 backdrop-blur-sm"
               >
-                Kontakta Oss
+                Logga In
               </Button>
             </Link>
           </div>

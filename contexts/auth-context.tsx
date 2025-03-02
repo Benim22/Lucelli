@@ -1,98 +1,53 @@
 "use client"
 
-import type React from "react"
+import { SessionProvider, useSession } from "next-auth/react"
+import { type ReactNode, createContext, useContext } from "react"
 
-import { createContext, useContext, useEffect, useState } from "react"
-import type { AuthContextType, AuthState } from "@/types/auth"
-import { authService } from "@/lib/auth-service"
-import { useToast } from "@/components/ui/use-toast"
-
-const initialState: AuthState = {
-  isLoading: true,
-  isAuthenticated: false,
-  user: null,
-  error: null,
+interface AuthContextType {
+  isAuthenticated: boolean
+  user: any | null
+  isLoading: boolean
+  error: Error | null
+  signIn: (provider: string) => Promise<void>
+  signOut: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const defaultContext: AuthContextType = {
+  isAuthenticated: false,
+  user: null,
+  isLoading: true,
+  error: null,
+  signIn: async () => {},
+  signOut: async () => {},
+}
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AuthState>(initialState)
-  const { toast } = useToast()
+export const AuthContext = createContext<AuthContextType>(defaultContext)
 
-  useEffect(() => {
-    const user = authService.getCurrentUser()
-    setState({
-      isLoading: false,
-      isAuthenticated: !!user,
-      user,
-      error: null,
-    })
-  }, [])
+export function AuthProvider({ children }: { children: ReactNode }) {
+  return <SessionProvider>{children}</SessionProvider>
+}
 
-  const handleAuthError = (error: Error) => {
-    setState((prev) => ({ ...prev, error, isLoading: false }))
-    toast({
-      title: "Authentication Error",
-      description: error.message,
-      variant: "destructive",
-    })
-  }
+export const useAuthContext = () => useContext(AuthContext)
 
-  const signInWithProvider = async (provider: "google" | "github" | "discord") => {
-    try {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }))
-      const user = await authService.loginWithProvider(provider)
-      setState({
-        isLoading: false,
-        isAuthenticated: true,
-        user,
-        error: null,
-      })
-      toast({
-        title: "Welcome!",
-        description: "You have successfully signed in.",
-      })
-    } catch (error) {
-      handleAuthError(error as Error)
-    }
+export function useAuth() {
+  const session = useSession()
+
+  const signIn = async (provider: string) => {
+    window.location.href = `/api/auth/${provider}`
   }
 
   const signOut = async () => {
-    try {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }))
-      await authService.logout()
-      setState({
-        isLoading: false,
-        isAuthenticated: false,
-        user: null,
-        error: null,
-      })
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      })
-    } catch (error) {
-      handleAuthError(error as Error)
-    }
+    await fetch("/api/auth/signout", { method: "POST" })
+    window.location.reload()
   }
 
-  const value: AuthContextType = {
-    ...state,
-    signInWithGoogle: () => signInWithProvider("google"),
-    signInWithGithub: () => signInWithProvider("github"),
-    signInWithDiscord: () => signInWithProvider("discord"),
+  return {
+    isAuthenticated: !!session.data?.user,
+    user: session.data?.user || null,
+    isLoading: session.status === "loading",
+    error: null,
+    signIn,
     signOut,
   }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
-  return context
 }
 

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { MapPin, Phone, Mail } from "lucide-react"
 import { useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
+import { submitContactForm } from "@/app/actions/contact"
 
 export default function ContactSection() {
   const [name, setName] = useState("")
@@ -23,19 +23,24 @@ export default function ContactSection() {
     setIsSubmitting(true)
 
     try {
-      // In a real implementation, this would send data to Supabase
-      // For now, we'll just simulate a successful submission
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const form = e.target as HTMLFormElement
+      const formData = new FormData(form)
 
-      toast({
-        title: "Meddelande skickat!",
-        description: "Tack för ditt meddelande. Vi återkommer så snart som möjligt.",
-      })
+      const result = await submitContactForm(formData)
 
-      // Reset form
-      setName("")
-      setEmail("")
-      setMessage("")
+      if (result.success) {
+        toast({
+          title: "Meddelande skickat!",
+          description: "Tack för ditt meddelande. Vi återkommer så snart som möjligt.",
+        })
+
+        // Reset form
+        setName("")
+        setEmail("")
+        setMessage("")
+      } else {
+        throw new Error(result.error)
+      }
     } catch (error) {
       toast({
         title: "Ett fel uppstod",
@@ -68,14 +73,15 @@ export default function ContactSection() {
             <h3 className="text-2xl font-bold mb-6">Skicka ett meddelande</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="contact-name">Namn *</Label>
-                <Input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} required />
+                <Label htmlFor="name">Namn *</Label>
+                <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contact-email">E-post *</Label>
+                <Label htmlFor="email">E-post *</Label>
                 <Input
-                  id="contact-email"
+                  id="email"
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -84,9 +90,10 @@ export default function ContactSection() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contact-message">Meddelande *</Label>
+                <Label htmlFor="message">Meddelande *</Label>
                 <Textarea
-                  id="contact-message"
+                  id="message"
+                  name="message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={5}

@@ -1,5 +1,8 @@
 import * as Realm from "realm-web"
 import type { AuthUser } from "@/types/auth"
+// Remove any @stackauth/core imports and replace with NextAuth
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "./auth/next-auth"
 
 class AuthService {
   private app: Realm.App
@@ -62,4 +65,14 @@ class AuthService {
 }
 
 export const authService = new AuthService()
+
+export async function getCurrentUser() {
+  const session = await getServerSession(authOptions)
+  return session?.user
+}
+
+export async function isAuthenticated() {
+  const session = await getServerSession(authOptions)
+  return !!session
+}
 

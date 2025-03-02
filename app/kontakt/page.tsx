@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { MapPin, Phone, Mail, Clock } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { submitContactForm } from "@/app/actions/contact"
 
 export default function ContactPage() {
   const [name, setName] = useState("")
@@ -23,20 +23,25 @@ export default function ContactPage() {
     setIsSubmitting(true)
 
     try {
-      // In a real implementation, this would send data to Supabase
-      // For now, we'll just simulate a successful submission
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const form = e.target as HTMLFormElement
+      const formData = new FormData(form)
 
-      toast({
-        title: "Meddelande skickat!",
-        description: "Tack för ditt meddelande. Vi återkommer så snart som möjligt.",
-      })
+      const result = await submitContactForm(formData)
 
-      // Reset form
-      setName("")
-      setEmail("")
-      setSubject("")
-      setMessage("")
+      if (result.success) {
+        toast({
+          title: "Meddelande skickat!",
+          description: "Tack för ditt meddelande. Vi återkommer så snart som möjligt.",
+        })
+
+        // Reset form
+        setName("")
+        setEmail("")
+        setSubject("")
+        setMessage("")
+      } else {
+        throw new Error(result.error)
+      }
     } catch (error) {
       toast({
         title: "Ett fel uppstod",
@@ -64,22 +69,42 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Namn *</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+                <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">E-post *</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="subject">Ämne *</Label>
-                <Input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} required />
+                <Input
+                  id="subject"
+                  name="subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="message">Meddelande *</Label>
-                <Textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} rows={5} required />
+                <Textarea
+                  id="message"
+                  name="message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={5}
+                  required
+                />
               </div>
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
