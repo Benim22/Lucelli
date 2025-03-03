@@ -51,8 +51,9 @@ export const AnimatedModal = ({ isOpen, onClose, children, className }: Animated
           >
             <div
               className={cn(
-                "relative rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900",
-                "max-h-[85vh] overflow-y-auto",
+                "relative rounded-lg bg-white p-4 sm:p-6 shadow-xl dark:bg-gray-900",
+                "max-h-[85vh] overflow-y-auto no-scrollbar",
+                "w-[95vw] sm:w-auto",
                 className,
               )}
             >

@@ -7,25 +7,11 @@ import { eq } from "drizzle-orm"
 import { users } from "@/lib/db/schema"
 import bcrypt from "bcryptjs"
 
-// Get the NEXTAUTH_URL from environment variables or set a default for development
-const NEXTAUTH_URL = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
-
-if (!process.env.NEXTAUTH_SECRET) {
-  throw new Error("NEXTAUTH_SECRET must be set")
-}
-
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
-        },
-      },
     }),
     GitHubProvider({
       clientId: process.env.GITHUB_CLIENT_ID!,
@@ -39,7 +25,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password are required")
+          return null
         }
 
         const user = await db.query.users.findFirst({
@@ -47,13 +33,13 @@ export const authOptions: NextAuthOptions = {
         })
 
         if (!user || !user.password) {
-          throw new Error("Invalid credentials")
+          return null
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password)
 
         if (!isValid) {
-          throw new Error("Invalid credentials")
+          return null
         }
 
         return {
@@ -84,12 +70,5 @@ export const authOptions: NextAuthOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-}
-
-// Export config for Next.js
-export const nextAuthConfig = {
-  ...authOptions,
-  trustHost: true,
-  url: NEXTAUTH_URL,
 }
 

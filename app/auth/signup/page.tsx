@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -38,13 +39,11 @@ export default function SignUpPage() {
     setIsLoading("email")
 
     try {
-      // Validate password length
       if (password.length < 8) {
         throw new Error("Password must be at least 8 characters long")
       }
 
-      // Make the API request
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,29 +51,21 @@ export default function SignUpPage() {
         body: JSON.stringify({ name, email, password }),
       })
 
-      // Check content type before parsing JSON
-      const contentType = response.headers.get("content-type")
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Invalid response from server")
-      }
-
       const data = await response.json()
 
       if (!response.ok) {
         throw new Error(data.error || "Registration failed")
       }
 
-      if (data.success) {
-        toast({
-          title: "Success",
-          description: data.message || "Your account has been created successfully",
-        })
+      toast({
+        title: "Success",
+        description: "Your account has been created successfully",
+      })
 
-        // Redirect to sign in page after successful registration
-        router.push("/auth/signin")
-      } else {
-        throw new Error(data.error || "Registration failed")
-      }
+      // Redirect to home page after a short delay
+      setTimeout(() => {
+        router.push("/")
+      }, 1000)
     } catch (error) {
       console.error("Registration error:", error)
       toast({
@@ -87,13 +78,17 @@ export default function SignUpPage() {
     }
   }
 
-  const handleOAuthSignUp = async (providerId: string) => {
+  const handleSignUp = async (providerId: string) => {
     try {
       setIsLoading(providerId)
 
       const response = await fetch(`/api/auth/${providerId}`)
 
-      // Check content type before parsing JSON
+      if (!response.ok) {
+        const error = await response.text()
+        throw new Error(error || "Failed to initialize authentication")
+      }
+
       const contentType = response.headers.get("content-type")
       if (!contentType || !contentType.includes("application/json")) {
         throw new Error("Invalid response from server")
@@ -101,15 +96,12 @@ export default function SignUpPage() {
 
       const data = await response.json()
 
-      if (!response.ok) {
-        throw new Error(data.error || "Authentication failed")
+      if (!data.url) {
+        throw new Error("No authentication URL received")
       }
 
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        throw new Error("Authentication failed")
-      }
+      // Redirect to provider's OAuth page
+      window.location.href = data.url
     } catch (error) {
       console.error("Authentication error:", error)
       toast({
@@ -154,7 +146,6 @@ export default function SignUpPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={8}
               />
             </div>
             <Button type="submit" className="w-full" disabled={!!isLoading}>
@@ -177,7 +168,7 @@ export default function SignUpPage() {
                 key={provider.id}
                 variant="outline"
                 className="w-full"
-                onClick={() => handleOAuthSignUp(provider.id)}
+                onClick={() => handleSignUp(provider.id)}
                 disabled={!!isLoading}
               >
                 {isLoading === provider.id ? (

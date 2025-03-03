@@ -21,7 +21,7 @@ interface AuthState {
 export const useAuth = create<AuthState>((set) => ({
   isAuthenticated: false,
   user: null,
-  isLoading: true,
+  isLoading: false,
   error: null,
   signIn: async (provider: string) => {
     try {

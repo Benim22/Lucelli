@@ -78,7 +78,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col px-4 sm:px-6 w-[95vw] sm:w-auto">
         <div className="sticky top-0 z-50 bg-background pt-6 pb-4">
           <button
             onClick={() => onOpenChange(false)}
@@ -95,7 +95,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
           </DialogHeader>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-1">
+        <div className="flex-1 overflow-y-auto px-1 no-scrollbar">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">

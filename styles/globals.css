@@ -115,6 +115,15 @@
     display: none; /* Chrome, Safari, Opera */
   }
 
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
   /* Add padding to account for the tracing beam */
   .content-wrapper {
     @apply pl-[2px]; /* Align exactly with the tracing beam width */

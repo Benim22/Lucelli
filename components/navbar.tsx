@@ -116,7 +116,7 @@ export default function Navbar() {
         className={cn(
           "md:hidden fixed transition-all duration-300 z-40",
           isOpen
-            ? "opacity-100 pointer-events-auto left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2"
+            ? "opacity-100 pointer-events-auto left-1/2 top-[50%] -translate-x-1/2 -translate-y-1/2"
             : "opacity-0 pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
         )}
       >

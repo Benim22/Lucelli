@@ -11,29 +11,36 @@ const authConfigSchema = z.object({
     clientSecret: z.string(),
     redirectUri: z.string().url(),
   }),
+  stackProjectId: z.string(),
+  stackPublishableKey: z.string(),
+  stackSecretKey: z.string(),
+  realmAppId: z.string(),
 })
 
-// Use NEXTAUTH_URL as the base URL
-const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+const baseUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : undefined
 
 export const authConfig = {
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    redirectUri: `${baseUrl}/api/auth/callback/google`,
+    redirectUri: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
   },
   github: {
     clientId: process.env.GITHUB_CLIENT_ID!,
     clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    redirectUri: `${baseUrl}/api/auth/callback/github`,
+    redirectUri: `${process.env.NEXTAUTH_URL}/api/auth/callback/github`,
   },
 }
+
+export const CALLBACK_URL = process.env.NEXT_PUBLIC_CALLBACK_URL || "http://localhost:3000/api/auth/callback"
 
 // Validate config
 const result = authConfigSchema.safeParse(authConfig)
 if (!result.success) {
   throw new Error(`Invalid auth configuration: ${result.error.message}`)
 }
-
-export const CALLBACK_URL = baseUrl
 

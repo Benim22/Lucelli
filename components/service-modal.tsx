@@ -20,7 +20,7 @@ export default function ServiceModal({ service, open, onOpenChange }: ServiceMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] dark:bg-gray-900">
+      <DialogContent className="sm:max-w-[600px] dark:bg-gray-900 max-h-[85vh] overflow-y-auto w-[95vw] sm:w-auto px-4 sm:px-6 no-scrollbar">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <span className="text-3xl">{service.icon}</span>

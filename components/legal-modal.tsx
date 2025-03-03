@@ -9,7 +9,11 @@ interface LegalModalProps {
 
 export default function LegalModal({ isOpen, onClose }: LegalModalProps) {
   return (
-    <AnimatedModal isOpen={isOpen} onClose={onClose}>
+    <AnimatedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      className="max-h-[85vh] overflow-y-auto w-[95vw] sm:w-auto px-4 sm:px-6 no-scrollbar"
+    >
       <div className="relative">
         <h2 className="text-2xl font-bold mb-4">Våra Legala Åtaganden</h2>
         <p className="text-gray-600 dark:text-gray-400 mb-6">

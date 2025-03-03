@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,7 +12,6 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { GoogleIcon } from "@/components/icons/google"
 import { useToast } from "@/components/ui/use-toast"
-import { signIn } from "next-auth/react"
 
 const providers = [
   {
@@ -35,14 +33,23 @@ export default function SignInPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const callbackUrl = searchParams.get("callbackUrl") || "/"
+
+  // Show error message if there was an error
+  const error = searchParams.get("error")
+  if (error) {
+    toast({
+      title: "Authentication Error",
+      description: error,
+      variant: "destructive",
+    })
+  }
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading("email")
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,7 +60,7 @@ export default function SignInPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to sign in")
+        throw new Error(data.error || "Authentication failed")
       }
 
       toast({
@@ -61,7 +68,10 @@ export default function SignInPage() {
         description: "You have been signed in successfully",
       })
 
-      router.push(callbackUrl)
+      // Redirect to home page after a short delay
+      setTimeout(() => {
+        router.push("/")
+      }, 1000)
     } catch (error) {
       console.error("Email sign-in error:", error)
       toast({
@@ -74,12 +84,30 @@ export default function SignInPage() {
     }
   }
 
-  const handleProviderSignIn = async (providerId: string) => {
+  const handleSignIn = async (providerId: string) => {
     try {
       setIsLoading(providerId)
-      await signIn(providerId, {
-        callbackUrl,
-      })
+
+      const response = await fetch(`/api/auth/${providerId}`)
+
+      if (!response.ok) {
+        const error = await response.text()
+        throw new Error(error || "Failed to initialize authentication")
+      }
+
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Invalid response from server")
+      }
+
+      const data = await response.json()
+
+      if (!data.url) {
+        throw new Error("No authentication URL received")
+      }
+
+      // Redirect to provider's OAuth page
+      window.location.href = data.url
     } catch (error) {
       console.error("Authentication error:", error)
       toast({
@@ -87,6 +115,7 @@ export default function SignInPage() {
         description: error instanceof Error ? error.message : "Failed to authenticate",
         variant: "destructive",
       })
+    } finally {
       setIsLoading(null)
     }
   }
@@ -141,7 +170,7 @@ export default function SignInPage() {
                 key={provider.id}
                 variant="outline"
                 className="w-full"
-                onClick={() => handleProviderSignIn(provider.id)}
+                onClick={() => handleSignIn(provider.id)}
                 disabled={!!isLoading}
               >
                 {isLoading === provider.id ? (
